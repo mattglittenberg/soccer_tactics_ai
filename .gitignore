@@ -4,3 +4,4 @@ chroma_db/
 *.pyc
 *.pem
 *.key
+.DS_Store

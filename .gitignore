@@ -4,4 +4,12 @@ chroma_db/
 *.pyc
 *.pem
 *.key
-*.DS_Store
+.DS_Store
+.env
+.env.local
+.env.production
+*.p12
+*.pyo
+*.egg-info/
+dist/
+*.log

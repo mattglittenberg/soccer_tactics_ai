@@ -1,6 +1,8 @@
 from pathlib import Path
 import chromadb
 from sentence_transformers import SentenceTransformer
+from pypdf import PdfReader
+from config import CHUNK_SIZE, CHUNK_OVERLAP
 
 
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
@@ -35,7 +37,19 @@ def ingest_folder(folder_path: str):
 
     for file in txt_files:
         text = file.read_text(encoding="utf-8")
-        chunks = chunk_text(text)
+        
+                # Skip empty files
+        if not text:
+            print(f"Skipping {file.name} — file is empty")
+            continue
+
+        chunks = chunk_text(text, CHUNK_SIZE, CHUNK_OVERLAP)
+
+        # Skip files that produced no chunks
+        if not chunks:
+            print(f"Skipping {file.name} — no chunks produced (content too short?)")
+            print(f"Word count: {len(text.split())} words")
+            continue
 
         # Generate embeddings for all chunks at once
         embeddings = embedder.encode(chunks, show_progress_bar=True).tolist()
@@ -50,6 +64,24 @@ def ingest_folder(folder_path: str):
         print(f"Ingested {file.name} → {len(chunks)} chunks")
 
     print(f"\nKnowledge base ready. Total chunks: {collection.count()}")
+
+def ingest_pdf(pdf_path: str):
+    reader = PdfReader(pdf_path)
+    full_text = ""
+    for page in reader.pages:
+        full_text += page.extract_text() + "\n"
+
+    chunks = chunk_text(full_text, CHUNK_SIZE, CHUNK_OVERLAP)
+    embeddings = embedder.encode(chunks, show_progress_bar=True).tolist()
+
+    filename = Path(pdf_path).name
+    collection.add(
+        documents=chunks,
+        embeddings=embeddings,
+        ids=[f"{Path(pdf_path).stem}_chunk_{i}" for i in range(len(chunks))],
+        metadatas=[{"source": filename, "chunk_index": i} for i in range(len(chunks))]
+    )
+    print(f"Ingested PDF: {filename} → {len(chunks)} chunks")
 
 
 if __name__ == "__main__":

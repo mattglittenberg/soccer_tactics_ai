@@ -1,5 +1,6 @@
 import ollama
 from prompts import SYSTEM_PROMPT
+from config import MODEL
 
 history = []
 
@@ -7,7 +8,7 @@ def chat(user_message):
     history.append({"role": "user", "content": user_message})
     
     chat_stream = ollama.chat(
-        model="llama3.1",
+        model=MODEL,
         messages=[{"role": "system", "content": SYSTEM_PROMPT}] + history,
         stream=True
     )

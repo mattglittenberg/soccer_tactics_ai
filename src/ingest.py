@@ -4,7 +4,7 @@ from sentence_transformers import SentenceTransformer
 from pypdf import PdfReader
 from config import CHUNK_SIZE, CHUNK_OVERLAP
 
-
+SECTION_SEPARATOR = "\n\n---\n\n"
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
 chroma_client = chromadb.PersistentClient(path="./chroma_db")
@@ -15,17 +15,34 @@ collection = chroma_client.get_or_create_collection(
 
 def chunk_text(text: str, chunk_size: int = 350, overlap: int = 50) -> list[str]:
     """
-    Split text into overlapping chunks.
-    overlap ensures context isn't lost at chunk boundaries.
+    Splits text on section separator then word count into overlapping chunks.
     """
-    words = text.split()
-    chunks = []
-    step = chunk_size - overlap
-    for i in range(0, len(words), step):
-        chunk = " ".join(words[i : i + chunk_size])
-        if len(chunk.split()) > 30:  # skip tiny trailing chunks
-            chunks.append(chunk)
-    return chunks
+    if SECTION_SEPARATOR in text:
+        sections = text.split(SECTION_SEPARATOR)
+    else:
+        sections = [text]   # treat whole file as one section
+
+    all_chunks = []
+    for section in sections:
+        section = section.strip()
+        if not section:
+            continue
+
+        words = section.split()
+
+        # If the section fits in one chunk, keep it whole
+        if len(words) <= chunk_size:
+            if len(words) > 30:
+                all_chunks.append(section)
+        else:
+            # Otherwise split by word count with overlap
+            step = chunk_size - overlap
+            for i in range(0, len(words), step):
+                chunk = " ".join(words[i : i + chunk_size])
+                if len(chunk.split()) > 30:
+                    all_chunks.append(chunk)
+
+    return all_chunks
 
 def ingest_folder(folder_path: str):
     folder = Path(folder_path)

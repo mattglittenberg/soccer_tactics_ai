@@ -42,6 +42,28 @@ def chat(user_message: str, use_rag: bool = True) -> str:
 
     return full_reply
 
+def compare_models(question: str, models: list[str]) -> None:
+    """Run the same question through multiple models and print results."""
+
+    chunks = retrieve(question)
+    augmented = build_augmented_prompt(question, chunks)
+
+    for model in models:
+        print(f"\n{'='*50}")
+        print(f"Model: {model}")
+        print('='*50)
+
+        response = ollama.chat(
+            model=model,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": augmented}
+            ]
+        )
+        
+        print(response["message"]["content"])
+
+
 
 if __name__ == "__main__":
     print("⚽ Soccer Tactical Assistant (RAG enabled) — type 'quit' to exit\n")

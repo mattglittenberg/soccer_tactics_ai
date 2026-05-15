@@ -2,12 +2,12 @@ from pathlib import Path
 import chromadb
 from sentence_transformers import SentenceTransformer
 from pypdf import PdfReader
-from config import CHUNK_SIZE, CHUNK_OVERLAP
+from config import CHUNK_SIZE, CHUNK_OVERLAP, CHROMA_PATH
 
 SECTION_SEPARATOR = "\n\n---\n\n"
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
-chroma_client = chromadb.PersistentClient(path="./chroma_db")
+chroma_client = chromadb.PersistentClient(path=CHROMA_PATH)
 collection = chroma_client.get_or_create_collection(
     name="soccer_tactics",
     metadata={"hnsw:space": "cosine"}  # cosine similarity for text

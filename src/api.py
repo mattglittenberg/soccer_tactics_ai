@@ -1,19 +1,39 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter
+from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from pydantic import BaseModel, Field
 from typing import Optional
+from contextlib import asynccontextmanager
 import uuid
-from rag import retrieve, build_augmented_prompt
+from rag import retrieve, build_augmented_prompt, collection
 from config import N_RETRIEVAL_RESULTS, MODEL
 from prompts import SYSTEM_PROMPT
 import ollama
 
+
+# --- Startup Check ---
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        count = collection.count()
+        print(f"ChromaDB connected - {count} chunks in knowledge base")
+        if count == 0:
+            print("Knowledge base is empty - run ingest.py first")
+    except Exception as e:
+        print(f"ChromaDB error on startup: {e}")
+    yield
+
+
+# --- App Setup ---
+
 app = FastAPI(
     title="Soccer Tactical AI Assistant",
     description="Local LLM-powered soccer coaching assistant with RAG",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Session storage
@@ -23,17 +43,21 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://localhost:7860"],  # only your own frontends
     allow_methods=["GET", "POST", "DELETE"],
-    allow_headers=["*"],
+    allow_headers=["Content-Type"],
+    allow_credentials = False
 )
 
+# Rate limiter
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 
 # --- Request / Response Models ---
 
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=2000)
-    session_id: str = Field(default=None, max_length=100)
+    session_id: Optional[str] = Field(default=None, max_length=100)
     use_rag: bool = True
 
 class ChatResponse(BaseModel):
@@ -60,7 +84,7 @@ async def health():
 
 @app.post("/chat", response_model=ChatResponse)
 @limiter.limit("10/minute")
-async def chat_endpoint(request: Request, body=ChatRequest):
+async def chat_endpoint(request: Request, body: ChatRequest):
     """Main chat endpoint. Supports multi-turn conversations via session_id"""
 
     # Create new session if none provided
@@ -124,4 +148,4 @@ async def clear_session(session_id: str):
 async def list_models():
     """List all locally available Ollama models."""
     models = ollama.list()
-    return {"models": [m["name"] for m in models.get("models", [])]}
+    return {"models": [m.model for m in models.models]}

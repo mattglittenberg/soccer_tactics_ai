@@ -1,6 +1,6 @@
 import chromadb
 from sentence_transformers import SentenceTransformer, CrossEncoder
-from config import CHROMA_PATH
+from src.config import CHROMA_PATH
 
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
 reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")

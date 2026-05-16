@@ -7,9 +7,9 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from contextlib import asynccontextmanager
 import uuid
-from rag import retrieve, build_augmented_prompt, collection
-from config import N_RETRIEVAL_RESULTS, MODEL
-from prompts import SYSTEM_PROMPT
+from src.rag import retrieve, build_augmented_prompt, collection
+from src.config import N_RETRIEVAL_RESULTS, MODEL
+from src.prompts import SYSTEM_PROMPT
 import ollama
 
 

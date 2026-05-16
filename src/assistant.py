@@ -1,8 +1,8 @@
 # assistant.py
 import ollama
-from prompts import SYSTEM_PROMPT
-from rag import retrieve, build_augmented_prompt
-from config import MODEL, N_RETRIEVAL_RESULTS
+from src.prompts import SYSTEM_PROMPT
+from src.rag import retrieve, build_augmented_prompt
+from src.config import MODEL, N_RETRIEVAL_RESULTS
 
 history = []
 
@@ -60,7 +60,7 @@ def compare_models(question: str, models: list[str]) -> None:
                 {"role": "user", "content": augmented}
             ]
         )
-        
+
         print(response["message"]["content"])
 
 

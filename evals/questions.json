@@ -1,0 +1,23 @@
+[
+  {
+    "id": "eval_001",
+    "question": "What is gegenpressing and who pioneered it?",
+    "must_mention": ["Klopp", "counter-press", "Liverpool", "Dortmund"],
+    "must_not_mention": ["basketball", "rugby"],
+    "category": "pressing"
+  },
+  {
+    "id": "eval_002",
+    "question": "What are the trade-offs of a high defensive line?",
+    "must_mention": ["space in behind", "offside trap", "compact", "pace"],
+    "must_not_mention": ["american football"],
+    "category": "defensive_shape"
+  },
+  {
+    "id": "eval_003",
+    "question": "How does Guardiola use the half-spaces?",
+    "must_mention": ["half-space", "positional play", "overload"],
+    "must_not_mention": ["hyperplane", "wave propogation"],
+    "category": "positional_play"
+  }
+]

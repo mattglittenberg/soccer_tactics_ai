@@ -4,7 +4,7 @@ import chromadb
 import re
 from sentence_transformers import SentenceTransformer
 from pypdf import PdfReader
-from config import CHUNK_SIZE, CHUNK_OVERLAP, CHROMA_PATH
+from src.config import CHUNK_SIZE, CHUNK_OVERLAP, CHROMA_PATH
 
 SECTION_SEPARATOR = "\n\n---\n\n"
 embedder = SentenceTransformer("all-MiniLM-L6-v2")

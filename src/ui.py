@@ -1,6 +1,6 @@
 import gradio as gr
 import time
-from assistant import chat
+from src.assistant import chat
 
 def stream_msg(message, history):
     for i in range(len(message)):

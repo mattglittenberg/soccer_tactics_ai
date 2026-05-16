@@ -1,6 +1,6 @@
 import ollama
-from prompts import SYSTEM_PROMPT
-from config import MODEL
+from src.prompts import SYSTEM_PROMPT
+from src.config import MODEL
 
 history = []
 
